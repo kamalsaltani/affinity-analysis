@@ -48,7 +48,7 @@ for sample in X:
 	# we want to see if it happened: 1 or not: 0
 	for premise in range(4): # config proper range for data
 		if sample[premise] == 0: continue
-			num_occurences[premise] += 1
+		num_occurences[premise] += 1
 		for conclusion in range(4):
 			if premise == conclusion: continue
 			if sample[conclusion] == 1:
