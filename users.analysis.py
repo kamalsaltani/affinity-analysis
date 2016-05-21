@@ -44,17 +44,17 @@ invalid_rules = defaultdict(int)
 num_occurences = defaultdict(int)
 
 for sample in X:
-		# premise in range(4) is referring to out of 5 pieces of data per user,
-		# we want to see if it happened: 1 or not: 0
-		for premise in range(4): # config proper range for data
-			if sample[premise] == 0: continue
+	# premise in range(4) is referring to out of 5 pieces of data per user,
+	# we want to see if it happened: 1 or not: 0
+	for premise in range(4): # config proper range for data
+		if sample[premise] == 0: continue
 			num_occurences[premise] += 1
-			for conclusion in range(4):
-				if premise == conclusion: continue
-				if sample[conclusion] == 1:
-					valid_rules[(premise, conclusion)] += 1
-				else:
-					invalid_rules[(premise, conclusion)] += 1
+		for conclusion in range(4):
+			if premise == conclusion: continue
+			if sample[conclusion] == 1:
+				valid_rules[(premise, conclusion)] += 1
+			else:
+				invalid_rules[(premise, conclusion)] += 1
 
 support = valid_rules # how many times did this really happen?
 confidence = defaultdict(float)
