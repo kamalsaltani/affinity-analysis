@@ -1,6 +1,8 @@
 # affinity analysis for news article features and user data associated with them
 
+import numpy as np
 from keen.client import KeenClient
+from collections import defaultdict
 
 # set keen.io keys
 def get_keen_client():
@@ -8,9 +10,7 @@ def get_keen_client():
 		project_id = "",
 		write_key = "",
 		read_key = ""
-	)
-
-import numpy as np
+)
 
 dataset_filename = "users.dataset.txt"
 X = np.loadtxt(dataset_filename) # TODO: look into making this JSON instead of text...
@@ -39,25 +39,22 @@ print("{0} people liked an article".format(num_article_likes)) # data condition 
 print("{0} people shared an article".format(num_article_shares)) # data condition match
 
 # compute the confidence and support for all possible rules:
-
-from collections import defaultdict
-
 valid_rules = defaultdict(int)
 invalid_rules = defaultdict(int)
 num_occurences = defaultdict(int)
 
 for sample in X:
-	# premise in range(4) is referring to out of 5 pieces of data per user,
-	# we want to see if it happened: 1 or not: 0
-	for premise in range(4): # config proper range for data
-		if sample[premise] == 0: continue
-		num_occurences[premise] += 1
-		for conclusion in range(4):
-			if premise == conclusion: continue
-			if sample[conclusion] == 1:
-				valid_rules[(premise, conclusion)] += 1
-			else:
-				invalid_rules[(premise, conclusion)] += 1
+		# premise in range(4) is referring to out of 5 pieces of data per user,
+		# we want to see if it happened: 1 or not: 0
+		for premise in range(4): # config proper range for data
+			if sample[premise] == 0: continue
+			num_occurences[premise] += 1
+			for conclusion in range(4):
+				if premise == conclusion: continue
+				if sample[conclusion] == 1:
+					valid_rules[(premise, conclusion)] += 1
+				else:
+					invalid_rules[(premise, conclusion)] += 1
 
 support = valid_rules # how many times did this really happen?
 confidence = defaultdict(float)
@@ -65,19 +62,20 @@ for premise, conclusion in valid_rules.keys():
 	rule = (premise, conclusion)
 	confidence[rule] = valid_rules[rule] / num_occurences[premise]
 
-def print_rule(premise, conclusion, support, confidence, features):
-	premise_name = features[premise]
-	conclusion_name = features[conclusion]
+
+def print_rule(the_premise, the_conclusion, the_support, the_confidence, features):
+	premise_name = features[the_premise]
+	conclusion_name = features[the_conclusion]
 	print("Rule 1: If a person likes an {0} they will also share that {1}".format(premise_name, conclusion_name))
-	print(" - Support: {0}".format(support[(premise, conclusion)]))
-	print(" - Confidence: {0:.3f}".format(confidence[(premise, conclusion)]))
+	print(" - Support: {0}".format(support[(the_premise, the_conclusion)]))
+	print(" - Confidence: {0:.3f}".format(confidence[(the_premise, the_conclusion)]))
 	# send data off to keen.io
 	client = get_keen_client()
 	client.add_event("affinity_analysis", {
 		"likes": num_article_likes,
 		"shares": num_article_shares,
-		"support": support[(premise, conclusion)],
-		"confidence": format(confidence[(premise, conclusion)], ".3f")
+		"support": the_support[(the_premise, the_conclusion)],
+		"confidence": format(the_confidence[(the_premise, the_conclusion)], ".3f")
 	})
 
 premise = 0 # if a person liked an article,
